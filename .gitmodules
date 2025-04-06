@@ -1,0 +1,12 @@
+[submodule "libs/JUCE"]
+	path = libs/JUCE
+	url = https://github.com/juce-framework/JUCE.git
+[submodule "libs/oddsound-mts/MTS-ESP"]
+	path = libs/oddsound-mts/MTS-ESP
+	url = https://github.com/ODDSound/MTS-ESP.git
+[submodule "libs/tuning-library"]
+	path = libs/tuning-library
+	url = https://github.com/surge-synthesizer/tuning-library.git
+[submodule "libs/fmt"]
+	path = libs/fmt
+	url = https://github.com/fmtlib/fmt.git
