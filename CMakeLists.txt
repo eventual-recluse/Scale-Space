@@ -2,7 +2,7 @@ set(PROJECT_NAME Scale-Space)
 
 cmake_minimum_required(VERSION 3.22)
 
-project(SCALESPACE VERSION 0.0.1)
+project(SCALESPACE VERSION 0.0.2)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system

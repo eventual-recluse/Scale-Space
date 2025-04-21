@@ -85,6 +85,7 @@ ScaleSpaceAudioProcessor::ScaleSpaceAudioProcessor()
     setStringState(kStateFileSavePath, "");
     
     paintFlag = false;
+    keysOnFlag = false;
     
     previousSmooth = false;
     
@@ -96,6 +97,8 @@ ScaleSpaceAudioProcessor::ScaleSpaceAudioProcessor()
 ScaleSpaceAudioProcessor::~ScaleSpaceAudioProcessor()
 {
     MTS_DeregisterMaster();
+    tuningEditor.deleteAndZero();
+    editorWindow.deleteAndZero();
 }
 
 //==============================================================================
@@ -294,15 +297,15 @@ void ScaleSpaceAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
             {
                 if (msg.getNoteNumber() >= 0 && msg.getNoteNumber() <= 127)
                     currentKeysOn[msg.getNoteNumber()] = true;
+                    keysOnFlag = true;
             }
             else if (msg.isNoteOff())
             {
                 if (msg.getNoteNumber() >= 0 && msg.getNoteNumber() <= 127)
                     currentKeysOn[msg.getNoteNumber()] = false;
+                    keysOnFlag = true;
             }
         }
-        if (tuningEditor)
-            tuningEditor->setMidiOnKeys(currentKeysOn);
     }
 }
 
@@ -991,7 +994,8 @@ void ScaleSpaceAudioProcessor::openTuningEditor(const uint32_t tuningNumber, con
 {
     if (!editorWindow)
     {
-		currentEditedTuning = tuningNumber;
+        currentEditedTuning = tuningNumber;
+        tuningEditor.deleteAndZero();
         tuningEditor = new TuningEditor(this, tuningNumber);
         tuningEditor->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
         editorWindow = new ExternalTuningEditorWindow("Edit Tuning for Scale " + juce::String(tuningNumber + 1), Colours::grey, DocumentWindow::closeButton);
@@ -1008,8 +1012,7 @@ void ScaleSpaceAudioProcessor::setNoteOn(const int noteNumber)
     if (noteNumber >= 0 && noteNumber <= 127)
     {
         currentKeysOn[noteNumber] = true;
-        if (tuningEditor)
-			tuningEditor->setMidiOnKeys(currentKeysOn);
+        keysOnFlag = true;
     }
 }
 
@@ -1018,9 +1021,13 @@ void ScaleSpaceAudioProcessor::setNoteOff(const int noteNumber)
     if (noteNumber >= 0 && noteNumber <= 127)
     {
         currentKeysOn[noteNumber] = false;
-        if (tuningEditor)
-			tuningEditor->setMidiOnKeys(currentKeysOn);
+        keysOnFlag = true;
     }
+}
+
+std::bitset<128>& ScaleSpaceAudioProcessor::getCurrentKeysOn()
+{
+    return currentKeysOn;
 }
 
 //==============================================================================

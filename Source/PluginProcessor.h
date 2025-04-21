@@ -136,8 +136,10 @@ public:
     void openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor);
     void setNoteOn(int noteNumber);
     void setNoteOff(int noteNumber);
+    std::bitset<128>& getCurrentKeysOn();
     
     std::atomic<bool> paintFlag;
+    std::atomic<bool> keysOnFlag;
     uint32_t currentEditedTuning;
         
     std::string standardSCLTuning;
@@ -180,6 +182,7 @@ private:
     bool previousSmooth;
     
     juce::Component::SafePointer<TuningEditor> tuningEditor;
+    
     std::bitset<128> currentKeysOn;
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ScaleSpaceAudioProcessor)

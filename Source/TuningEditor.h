@@ -110,6 +110,7 @@ class ScaleSpaceAudioProcessor;
 
 struct TuningEditor : public juce::Component
 					, public juce::FileDragAndDropTarget
+					, public juce::Timer
 {
     class TuningTextEditedListener
     {
@@ -138,6 +139,7 @@ struct TuningEditor : public juce::Component
     
     bool isInterestedInFileDrag (const juce::StringArray &files) override;
     void filesDropped (const juce::StringArray &files, int x, int y) override;
+    void timerCallback() override;
     
     std::unique_ptr<TuningTableListBoxModel> tuningKeyboardTableModel;
     std::unique_ptr<juce::TableListBox> tuningKeyboardTable;

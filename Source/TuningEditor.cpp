@@ -2844,6 +2844,7 @@ TuningEditor::TuningEditor(ScaleSpaceAudioProcessor *p, const uint32_t tuningInd
     
     setTuning(tuning);
     
+    startTimerHz(50);
 }
 
 TuningEditor::~TuningEditor()
@@ -3159,6 +3160,14 @@ void TuningEditor::filesDropped (const juce::StringArray &files, int x, int y)
 	}
 }
 
+void TuningEditor::timerCallback()
+{
+    if (audioProcessor->keysOnFlag)
+    {
+        setMidiOnKeys(audioProcessor->getCurrentKeysOn());
+        audioProcessor->keysOnFlag = false;
+    }
+}
 
 ExternalTuningEditorWindow::ExternalTuningEditorWindow(const juce::String& name, juce::Colour backgroundColour, int requiredButtons)
                             : juce::DocumentWindow (name, backgroundColour, requiredButtons)
