@@ -992,11 +992,10 @@ void ScaleSpaceAudioProcessor::exportCurrentKbmTuning(const juce::String & fileP
 
 void ScaleSpaceAudioProcessor::openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor)
 {
-    if (!editorWindow)
+    if (!editorWindow && tuningEditor)
     {
         currentEditedTuning = tuningNumber;
-        tuningEditor.deleteAndZero();
-        tuningEditor = new TuningEditor(this, tuningNumber);
+        tuningEditor->setupForTuning(tuningNumber);
         tuningEditor->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
         editorWindow = new ExternalTuningEditorWindow("Edit Tuning for Scale " + juce::String(tuningNumber + 1), Colours::grey, DocumentWindow::closeButton);
         editorWindow->setUsingNativeTitleBar(false);
