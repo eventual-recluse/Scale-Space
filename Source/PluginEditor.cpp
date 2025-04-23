@@ -148,10 +148,13 @@ ScaleSpaceAudioProcessorEditor::ScaleSpaceAudioProcessorEditor (ScaleSpaceAudioP
     updateAllNameLabels();
     
     multiPad.threeDimensionModeActive(*audioProcessor.getApvts().getRawParameterValue("threeDimensional"));
+    
+    tuningEditor = std::make_unique<TuningEditor>(audioProcessor, TUNING_1);
 }
 
 ScaleSpaceAudioProcessorEditor::~ScaleSpaceAudioProcessorEditor()
 {
+    editorWindow.deleteAndZero();
 }
 
 //==============================================================================
@@ -260,7 +263,7 @@ void ScaleSpaceAudioProcessorEditor::scaleOpenButtonClicked(const uint32_t tunin
 					auto fileText = file.loadFileAsString();
 					
 					// Should be true if the new scale was applied successfully
-					if (audioProcessor.applyNewTuning(tuningNumber, fileText, tunType))
+					if (applyNewTuningFromEditor(tuningNumber, fileText, tunType))
 					{
 						// Update Scale Name stringState
 						audioProcessor.setNameStateForTuning(tuningNumber, file.getFileName(), tunType);
@@ -280,7 +283,7 @@ void ScaleSpaceAudioProcessorEditor::scaleOpenButtonClicked(const uint32_t tunin
 
 void ScaleSpaceAudioProcessorEditor::exportButtonClicked(const uint32_t tunType, const char* chooserText, const char* fileExt)
 {
-    if (!audioProcessor.editorWindow)
+    if (!editorWindow)
     {
         chooser = std::make_unique<juce::FileChooser> (chooserText,
             juce::File(audioProcessor.getStringState(kStateFileSavePath)),
@@ -360,31 +363,101 @@ void ScaleSpaceAudioProcessorEditor::filesDropped (const juce::StringArray &file
     if (files.size() !=1)
         return;
         
-	for (auto i = files.begin(); i != files.end(); ++i)
-	{
-		if (i->endsWith(".scl") || i->endsWith(".kbm"))
-		{
-			if ( (x > scaleBox1.getX()) && (x < scaleBox1.getRight()) && (y > scaleBox1.getY()) && (y < scaleBox1.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_1, i->toStdString());
-			else if ( (x > scaleBox2.getX()) && (x < scaleBox2.getRight()) && (y > scaleBox2.getY()) && (y < scaleBox2.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_2, i->toStdString());
-			else if ( (x > scaleBox3.getX()) && (x < scaleBox3.getRight()) && (y > scaleBox3.getY()) && (y < scaleBox3.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_3, i->toStdString());
-			else if ( (x > scaleBox4.getX()) && (x < scaleBox4.getRight()) && (y > scaleBox4.getY()) && (y < scaleBox4.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_4, i->toStdString());
-			else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox5.getX()) && (x < scaleBox5.getRight()) && (y > scaleBox5.getY()) && (y < scaleBox5.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_5, i->toStdString());
-			else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox6.getX()) && (x < scaleBox6.getRight()) && (y > scaleBox6.getY()) && (y < scaleBox6.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_6, i->toStdString());
-			else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox7.getX()) && (x < scaleBox7.getRight()) && (y > scaleBox7.getY()) && (y < scaleBox7.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_7, i->toStdString());
-			else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox8.getX()) && (x < scaleBox8.getRight()) && (y > scaleBox8.getY()) && (y < scaleBox8.getBottom()) )
-				audioProcessor.applyDroppedFile(TUNING_8, i->toStdString());
-		}
-	}
-	// Update UI.
-	updateAllNameLabels();
-	repaint();
+    for (auto i = files.begin(); i != files.end(); ++i)
+    {
+        if (i->endsWith(".scl") || i->endsWith(".kbm"))
+        {
+            uint32_t scaleToApply = TUNING_COUNT;
+            
+            if ( (x > scaleBox1.getX()) && (x < scaleBox1.getRight()) && (y > scaleBox1.getY()) && (y < scaleBox1.getBottom()) )
+                scaleToApply = TUNING_1;
+            else if ( (x > scaleBox2.getX()) && (x < scaleBox2.getRight()) && (y > scaleBox2.getY()) && (y < scaleBox2.getBottom()) )
+                scaleToApply = TUNING_2;
+            else if ( (x > scaleBox3.getX()) && (x < scaleBox3.getRight()) && (y > scaleBox3.getY()) && (y < scaleBox3.getBottom()) )
+                scaleToApply = TUNING_3;
+            else if ( (x > scaleBox4.getX()) && (x < scaleBox4.getRight()) && (y > scaleBox4.getY()) && (y < scaleBox4.getBottom()) )
+                scaleToApply = TUNING_4;
+            else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox5.getX()) && (x < scaleBox5.getRight()) && (y > scaleBox5.getY()) && (y < scaleBox5.getBottom()) )
+                scaleToApply = TUNING_5;
+            else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox6.getX()) && (x < scaleBox6.getRight()) && (y > scaleBox6.getY()) && (y < scaleBox6.getBottom()) )
+                scaleToApply = TUNING_6;
+            else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox7.getX()) && (x < scaleBox7.getRight()) && (y > scaleBox7.getY()) && (y < scaleBox7.getBottom()) )
+                scaleToApply = TUNING_7;
+            else if ( *audioProcessor.getApvts().getRawParameterValue("threeDimensional") && (x > scaleBox8.getX()) && (x < scaleBox8.getRight()) && (y > scaleBox8.getY()) && (y < scaleBox8.getBottom()) )
+                scaleToApply = TUNING_8;
+                
+            if (scaleToApply != TUNING_COUNT)
+            {
+                if (audioProcessor.applyDroppedFile(scaleToApply, i->toStdString()))
+                {
+                    if (tuningEditor && audioProcessor.currentEditedTuning == scaleToApply)
+                        tuningEditor->setupForTuning(scaleToApply);
+                }
+            }
+        }
+    }
+    // Update UI.
+    updateAllNameLabels();
+    repaint();
+}
+
+// applyNewTuningFromEditor is for files opened from, or dropped onto, the main editor window.
+bool ScaleSpaceAudioProcessorEditor::applyNewTuningFromEditor(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType)
+{
+    bool success = false;
+    
+    if (audioProcessor.editedTuningValid(tuningNumber, tunData, tunType))
+    {
+        // The tuning validity has already been checked but the following try - catches
+        // have kept kept just in case...
+        if (tunType == SCL)
+        {
+            try
+            {
+                auto k = audioProcessor.getTuning(tuningNumber).keyboardMapping;
+                auto s = Tunings::parseSCLData(tunData.toStdString());
+                audioProcessor.getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
+                
+                audioProcessor.setStringState( audioProcessor.getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
+                
+                if ( (tuningEditor) && (editorWindow) && (audioProcessor.currentEditedTuning == tuningNumber) )
+                    tuningEditor->setupForTuning(tuningNumber);
+                
+                success = true;
+            }
+            catch (const std::exception& e)
+            {
+                AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Problem applying SCL. Scale reset.", e.what());
+                // Reset stringState information for this tuning's SCL and KBM
+                audioProcessor.resetTuningStringStatesToStandard(tuningNumber);
+                success = false;
+            }
+        }
+        else if (tunType == KBM)
+        {
+            try
+            {
+                auto s = audioProcessor.getTuning(tuningNumber).scale;
+                auto k = Tunings::parseKBMData(tunData.toStdString());
+                audioProcessor.getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
+                
+                audioProcessor.setStringState( audioProcessor.getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
+                
+                if ( (tuningEditor) && (editorWindow) && (audioProcessor.currentEditedTuning == tuningNumber) )
+                    tuningEditor->setupForTuning(tuningNumber);
+                    
+                success = true;
+            }
+            catch (const std::exception& e)
+            {
+                AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Problem applying KBM. Scale reset.", e.what());
+                // Reset stringState information for this tuning's SCL and KBM
+                audioProcessor.resetTuningStringStatesToStandard(tuningNumber);
+                success = false;
+            }
+        }
+    }
+    return success;
 }
 
 void ScaleSpaceAudioProcessorEditor::dimensionModeButtonClicked()
@@ -404,9 +477,9 @@ void ScaleSpaceAudioProcessorEditor::dimensionModeButtonClicked()
 
 void ScaleSpaceAudioProcessorEditor::openEditorButtonClicked(const uint32_t tuningNumber)
 {
-    if (!audioProcessor.editorWindow)
+    if (!editorWindow)
     {
-        audioProcessor.openTuningEditor(tuningNumber, getApproximateScaleFactorForComponent(this));
+        openTuningEditor(tuningNumber, getApproximateScaleFactorForComponent(this));
         
         // TODO Don't use this timer to update the UI while the tuning editor is open
         startTimerHz(10);
@@ -421,10 +494,27 @@ void ScaleSpaceAudioProcessorEditor::openEditorButtonClicked(const uint32_t tuni
 	}
 }
 
+void ScaleSpaceAudioProcessorEditor::openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor)
+{
+    if (!editorWindow && tuningEditor)
+    {
+        audioProcessor.currentEditedTuning = tuningNumber;
+        tuningEditor->setupForTuning(tuningNumber);
+        tuningEditor->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+        tuningEditor->startTimerHz(50);
+        editorWindow = new ExternalTuningEditorWindow("Edit Tuning for Scale " + juce::String(tuningNumber + 1), Colours::grey, DocumentWindow::closeButton);
+        editorWindow->setUsingNativeTitleBar(false);
+        editorWindow->setResizable(false, true);
+        editorWindow->setContentNonOwned(tuningEditor.get(), true);
+        editorWindow->centreWithSize(1000 * desktopScaleFactor, 600 * desktopScaleFactor);
+        editorWindow->setVisible(true);
+    }
+}
+
 // TODO Don't use this timer to update the UI while the tuning editor is open
 void ScaleSpaceAudioProcessorEditor::timerCallback()
 {
-    if (audioProcessor.editorWindow)
+    if (editorWindow)
     {
         if (audioProcessor.paintFlag)
         {
@@ -435,6 +525,7 @@ void ScaleSpaceAudioProcessorEditor::timerCallback()
     }
     else
     {
+        tuningEditor->stopTimer();
         stopTimer();
     }
 }

@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "TuningEditor.h"
 #include "ScaleBox.h"
 #include "MultiDimensionalPad.h"
 #include "ExtraLookAndFeel.h"
@@ -32,18 +33,23 @@ public:
     void timerCallback() override;
         
 protected:
-	void scaleOpenButtonClicked(const uint32_t tuningNumber, const uint32_t tunType, const char* chooserText, const char* fileExt);
+    void scaleOpenButtonClicked(const uint32_t tuningNumber, const uint32_t tunType, const char* chooserText, const char* fileExt);
     void exportButtonClicked(const uint32_t tunType, const char* chooserText, const char* fileExt);
     void updateAllNameLabels();
     void updateNameLabel(juce::Label &label, const uint32_t nameIndex);
+    bool applyNewTuningFromEditor(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType);
     void dimensionModeButtonClicked();
     void openEditorButtonClicked(const uint32_t tuningNumber);
+    void openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor);
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     ScaleSpaceAudioProcessor& audioProcessor;
-        
+    
+    std::unique_ptr<TuningEditor> tuningEditor;
+    juce::Component::SafePointer<ExternalTuningEditorWindow> editorWindow;
+    
     MultiDimensionalPad multiPad;
     float multiPadSize;
     

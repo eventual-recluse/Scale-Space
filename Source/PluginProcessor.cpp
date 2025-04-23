@@ -90,15 +90,11 @@ ScaleSpaceAudioProcessor::ScaleSpaceAudioProcessor()
     previousSmooth = false;
     
     currentEditedTuning = TUNING_COUNT;
-    
-    tuningEditor = new TuningEditor(this, TUNING_1);
 }
 
 ScaleSpaceAudioProcessor::~ScaleSpaceAudioProcessor()
 {
     MTS_DeregisterMaster();
-    tuningEditor.deleteAndZero();
-    editorWindow.deleteAndZero();
 }
 
 //==============================================================================
@@ -260,29 +256,29 @@ void ScaleSpaceAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     // Smoothing. Currently done via division of the remaining difference to target
     // for every frame, to try for consistent behaviour regardless of buffer size
       
-	if (smoothOn)
-	{
-		for (uint32_t fr = 0; fr < frames; ++fr)
-		{
-			for (int i = 0; i < 128; i++)
-			{
-				double difference = targetFrequenciesInHz[i] - frequenciesInHz[i];
-				if (std::fabs(difference) < 0.01f)
-				{
-					frequenciesInHz[i] = targetFrequenciesInHz[i];
-				}
-				else
-				{
-					frequenciesInHz[i] += (difference / smoothFactor);
-				}
-			}
-		}
-		MTS_SetNoteTunings(frequenciesInHz);
-	}
-	else
-	{
-		MTS_SetNoteTunings(targetFrequenciesInHz);
-	}
+    if (smoothOn)
+    {
+        for (uint32_t fr = 0; fr < frames; ++fr)
+        {
+            for (int i = 0; i < 128; i++)
+            {
+                double difference = targetFrequenciesInHz[i] - frequenciesInHz[i];
+                if (std::fabs(difference) < 0.01f)
+                {
+                    frequenciesInHz[i] = targetFrequenciesInHz[i];
+                }
+                else
+                {
+                    frequenciesInHz[i] += (difference / smoothFactor);
+                }
+            }
+        }
+        MTS_SetNoteTunings(frequenciesInHz);
+    }
+    else
+    {
+        MTS_SetNoteTunings(targetFrequenciesInHz);
+    }
     
     
     previousSmooth = smoothOn;
@@ -585,7 +581,6 @@ bool ScaleSpaceAudioProcessor::validSclKbmPair(const Tunings::Scale &s, const Tu
     return success;
 }
 
-// applyNewTuning is for SCL and KBM files opened or drag & dropped in the main UI, or drag and dropped onto the tuning editor window.
 // setFileState can be set to false for restoring the tuning from the file string state, because in that case we don't need to update the string state again
 bool ScaleSpaceAudioProcessor::applyNewTuning(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType, const bool setFileState)
 {
@@ -604,10 +599,7 @@ bool ScaleSpaceAudioProcessor::applyNewTuning(const uint32_t tuningNumber, const
                 getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
                 
                 if (setFileState)
-					setStringState( getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
-                
-                if ( (tuningEditor) && (editorWindow) && (currentEditedTuning == tuningNumber) )
-					tuningEditor->setupForTuning(tuningNumber);
+                    setStringState( getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
                 
                 success = true;
             }
@@ -628,11 +620,8 @@ bool ScaleSpaceAudioProcessor::applyNewTuning(const uint32_t tuningNumber, const
                 getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
                 
                 if (setFileState)
-					setStringState( getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
+                    setStringState( getFileIndexFromTuningAndFileType(tuningNumber, tunType), tunData);
                 
-                if ( (tuningEditor) && (editorWindow) && (currentEditedTuning == tuningNumber) )
-					tuningEditor->setupForTuning(tuningNumber);
-					
                 success = true;
             }
             catch (const std::exception& e)
@@ -664,30 +653,30 @@ bool ScaleSpaceAudioProcessor::applySclKbmPair(const uint32_t tuningNumber, cons
     {
         // The tuning validity has already been checked but the following try - catches
         // have kept kept just in case...
-		try
-		{
-			getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
-			if (!sameScl)
-			{
-				setStringState( getFileIndexFromTuningAndFileType(tuningNumber, SCL), juce::String(s.rawText));
-				setStringState( getNameIndexFromTuningAndFileType(tuningNumber, SCL), "Edited SCL " + getTuning(tuningNumber).scale.description);
-			}
-			
-			if (!sameKbm)
-			{
-				setStringState( getFileIndexFromTuningAndFileType(tuningNumber, KBM), juce::String(k.rawText));
-				setStringState( getNameIndexFromTuningAndFileType(tuningNumber, KBM), "Edited KBM" );
-			}
-			
-			success = true;
-		}
-		catch (const std::exception& e)
-		{
-			AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Problem applying tuning. Scale reset.", e.what());
-			// Reset stringState information for this tuning's SCL and KBM
-			resetTuningStringStatesToStandard(tuningNumber);
-			success = false;
-		}
+        try
+        {
+            getTuning(tuningNumber) = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
+            if (!sameScl)
+            {
+                setStringState( getFileIndexFromTuningAndFileType(tuningNumber, SCL), juce::String(s.rawText));
+                setStringState( getNameIndexFromTuningAndFileType(tuningNumber, SCL), "Edited SCL " + getTuning(tuningNumber).scale.description);
+            }
+            
+            if (!sameKbm)
+            {
+                setStringState( getFileIndexFromTuningAndFileType(tuningNumber, KBM), juce::String(k.rawText));
+                setStringState( getNameIndexFromTuningAndFileType(tuningNumber, KBM), "Edited KBM" );
+            }
+            
+            success = true;
+        }
+        catch (const std::exception& e)
+        {
+            AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Problem applying tuning. Scale reset.", e.what());
+            // Reset stringState information for this tuning's SCL and KBM
+            resetTuningStringStatesToStandard(tuningNumber);
+            success = false;
+        }
     }
     paintFlag = true;
     
@@ -725,35 +714,40 @@ bool ScaleSpaceAudioProcessor::retuneToScale(const uint32_t tuningNumber, const 
     return success;
 }
 
-void ScaleSpaceAudioProcessor::applyDroppedFile(const uint32_t tuningNumber, const std::string & filePath)
+bool ScaleSpaceAudioProcessor::applyDroppedFile(const uint32_t tuningNumber, const std::string & filePath)
 {
-	juce::File file(filePath);
-	
-	if (!file.existsAsFile())
-		return;
-	
-	auto fileText = file.loadFileAsString();
-	
-	if ( file.getFileExtension() == ".scl" )
-	{
-		// Should be true if the new scale was applied successfully
-		if (applyNewTuning(tuningNumber, fileText, SCL))
-		{
-			// Update Scale Name stringState
-			setNameStateForTuning(tuningNumber, file.getFileName(), SCL);
-		}
-	}
-	else if ( file.getFileExtension() == ".kbm" )
-	{
-		// Should be true if the new scale was applied successfully
-		if (applyNewTuning(tuningNumber, fileText, KBM))
-		{
-			setNameStateForTuning(tuningNumber, file.getFileName(), KBM);
-		}
-	}
-	
-	if (editorWindow)
-		paintFlag = true;
+    juce::File file(filePath);
+
+    if (!file.existsAsFile())
+        return false;
+        
+    bool success = false;
+
+    auto fileText = file.loadFileAsString();
+
+    if ( file.getFileExtension() == ".scl" )
+    {
+        // Should be true if the new scale was applied successfully
+        if (applyNewTuning(tuningNumber, fileText, SCL))
+        {
+            // Update Scale Name stringState
+            setNameStateForTuning(tuningNumber, file.getFileName(), SCL);
+            success = true;
+        }
+    }
+    else if ( file.getFileExtension() == ".kbm" )
+    {
+        // Should be true if the new scale was applied successfully
+        if (applyNewTuning(tuningNumber, fileText, KBM))
+        {
+            setNameStateForTuning(tuningNumber, file.getFileName(), KBM);
+            success = true;
+        }
+    }
+
+    paintFlag = true;
+    
+    return success;
 }
 
 void ScaleSpaceAudioProcessor::resetTuningStringStatesToStandard(const uint32_t tuningNumber)
@@ -987,22 +981,6 @@ void ScaleSpaceAudioProcessor::exportCurrentKbmTuning(const juce::String & fileP
             kbmSaveFile.appendText("! Scale degree to consider as formal octave:\n", false, false, nullptr);
             kbmSaveFile.appendText("127\n", false, false, nullptr);
         }
-    }
-}
-
-void ScaleSpaceAudioProcessor::openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor)
-{
-    if (!editorWindow && tuningEditor)
-    {
-        currentEditedTuning = tuningNumber;
-        tuningEditor->setupForTuning(tuningNumber);
-        tuningEditor->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
-        editorWindow = new ExternalTuningEditorWindow("Edit Tuning for Scale " + juce::String(tuningNumber + 1), Colours::grey, DocumentWindow::closeButton);
-        editorWindow->setUsingNativeTitleBar(false);
-        editorWindow->setResizable(false, true);
-        editorWindow->setContentNonOwned(tuningEditor, true);
-        editorWindow->centreWithSize(1000 * desktopScaleFactor, 600 * desktopScaleFactor);
-        editorWindow->setVisible(true);
     }
 }
 

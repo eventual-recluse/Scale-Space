@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ./build/SCALESPACE_artefacts/Release/VST3
-          name: Scale-Space-ubuntu-latest-release
+          name: Scale-Space-v0.0.4-ubuntu-latest-release
 
   windows:
     runs-on: windows-latest
@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ./build/SCALESPACE_artefacts/Release/VST3
-          name: Scale-Space-windows-latest-release
+          name: Scale-Space-v0.0.4-windows-latest-release
 
   macos:
     runs-on: macos-latest
@@ -69,4 +69,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ./build/SCALESPACE_artefacts/Release/VST3
-          name: Scale-Space-macos-latest-release
+          name: Scale-Space-v0.0.4-macos-latest-release

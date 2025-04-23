@@ -193,12 +193,12 @@ class TuningTableListBoxModel : public juce::TableListBoxModel
         
         void mouseDown(const juce::MouseEvent &event) override
         {
-            parent.parent->audioProcessor->setNoteOn(rowNumber);
+            parent.parent->audioProcessor.setNoteOn(rowNumber);
         }
 
         void mouseUp(const juce::MouseEvent &event) override
         {
-            parent.parent->audioProcessor->setNoteOff(rowNumber);
+            parent.parent->audioProcessor.setNoteOff(rowNumber);
         }
     };
 
@@ -589,19 +589,19 @@ class RadialScaleGraph : public juce::Component
     }
     
     void setDisplayMode(const uint32_t m)
-	{
-		switch (m)
-		{
-			case 0:
-				displayMode = DisplayMode::RADIAL;
-				break;
-			case 1:
-				displayMode = DisplayMode::ANGULAR;
-				break;
-			default:
-				break;
-		}
-	}
+    {
+        switch (m)
+        {
+            case 0:
+                displayMode = DisplayMode::RADIAL;
+                break;
+            case 1:
+                displayMode = DisplayMode::ANGULAR;
+                break;
+            default:
+                break;
+        }
+    }
 
   private:
     void textEditorReturnKeyPressed(juce::TextEditor &editor) override;
@@ -2795,11 +2795,11 @@ struct TuningControlArea : public juce::Component,
 
 
 
-TuningEditor::TuningEditor(ScaleSpaceAudioProcessor *p, const uint32_t tuningIndex)
+TuningEditor::TuningEditor(ScaleSpaceAudioProcessor& p, const uint32_t tuningIndex)
                 :audioProcessor(p)
 {
     tuningNumber = tuningIndex;
-    tuning = audioProcessor->getTuning(tuningNumber); // was getCopyOfTuning
+    tuning = audioProcessor.getTuning(tuningNumber); // was getCopyOfTuning
     currentScale = tuning.scale;
     currentMapping = tuning.keyboardMapping;
     tuningKeyboardTableModel = std::make_unique<TuningTableListBoxModel>(this);
@@ -2849,7 +2849,7 @@ TuningEditor::TuningEditor(ScaleSpaceAudioProcessor *p, const uint32_t tuningInd
 
 TuningEditor::~TuningEditor()
 {
-
+    stopTimer();
 }
 
 void TuningEditor::resized()
@@ -2875,62 +2875,62 @@ void TuningEditor::resized()
     controlArea->setBounds(kbWidth, h - ctrlHeight, w - kbWidth, ctrlHeight);
 
     tuningKeyboardTableModel->setMiddleCOff(1);
-	
-	int whichEditorPolarMode = audioProcessor->getIntState(kStateEditorPolarMode);
-	if (whichEditorPolarMode >= 0 && whichEditorPolarMode <= 1)
-	{
-		switch (whichEditorPolarMode)
-		{
-			case 0:
-				radialScaleGraph->setDisplayMode(0);
-				radialScaleGraph->radialModeButton->setToggleState(true, juce::dontSendNotification);
-				break;
-			case 1:
-				radialScaleGraph->setDisplayMode(1);
-				radialScaleGraph->angularModeButton->setToggleState(true, juce::dontSendNotification);
-				break;
-			default:
-				break;
-		}
-	}
-	
-	int whichEditor = audioProcessor->getIntState(kStateEditorMode);
-	if (whichEditor >= 0 && whichEditor <= 5)
-	{
-		switch (whichEditor)
-		{
-			case 0:
-				controlArea->selectScalaButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			case 1:
-				controlArea->selectPolarButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			case 2:
-				controlArea->selectIntervalButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			case 3:
-				controlArea->selectToEqualButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			case 4:
-				controlArea->selectRotationButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			case 5:
-				controlArea->selectTrueKeysButton->setToggleState(true, juce::dontSendNotification);
-				showEditor(whichEditor);
-				break;
-			default:
-				break;
-		}
-	}
-	else
-	{
-		showEditor(0);
-	}
+
+    int whichEditorPolarMode = audioProcessor.getIntState(kStateEditorPolarMode);
+    if (whichEditorPolarMode >= 0 && whichEditorPolarMode <= 1)
+    {
+        switch (whichEditorPolarMode)
+        {
+            case 0:
+                radialScaleGraph->setDisplayMode(0);
+                radialScaleGraph->radialModeButton->setToggleState(true, juce::dontSendNotification);
+                break;
+            case 1:
+                radialScaleGraph->setDisplayMode(1);
+                radialScaleGraph->angularModeButton->setToggleState(true, juce::dontSendNotification);
+                break;
+            default:
+                break;
+        }
+    }
+
+    int whichEditor = audioProcessor.getIntState(kStateEditorMode);
+    if (whichEditor >= 0 && whichEditor <= 5)
+    {
+        switch (whichEditor)
+        {
+            case 0:
+                controlArea->selectScalaButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            case 1:
+                controlArea->selectPolarButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            case 2:
+                controlArea->selectIntervalButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            case 3:
+                controlArea->selectToEqualButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            case 4:
+                controlArea->selectRotationButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            case 5:
+                controlArea->selectTrueKeysButton->setToggleState(true, juce::dontSendNotification);
+                showEditor(whichEditor);
+                break;
+            default:
+                break;
+        }
+    }
+    else
+    {
+        showEditor(0);
+    }
 }
 
 void TuningEditor::showEditor(int which)
@@ -2963,7 +2963,7 @@ void TuningEditor::showEditor(int which)
         intervalMatrix->setTrueKeyboardMode();
     }
     
-    audioProcessor->setIntState(kStateEditorMode, which);
+    audioProcessor.setIntState(kStateEditorMode, which);
 }
 
 void TuningEditor::onToneChanged(int tone, double newCentsValue)
@@ -3031,7 +3031,7 @@ void TuningEditor::onToneStringChanged(int tone, const std::string &newStringVal
         //std::cout << "Tuning Tone Conversion" << e.what() << std::endl;
         AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Tuning Tone Conversion", e.what());
         // If something went wrong, revert to whatever the current tuning is in the audioProcessor
-        setTuning(audioProcessor->getTuning(tuningNumber)); // was getCopyOfTuning
+        setTuning(audioProcessor.getTuning(tuningNumber)); // was getCopyOfTuning
     }
     
 }
@@ -3042,14 +3042,14 @@ void TuningEditor::onNewSCLKBM(const std::string &scl, const std::string &kbm)
     {
         auto s = Tunings::parseSCLData(scl);
         auto k = Tunings::parseKBMData(kbm);
-        audioProcessor->applySclKbmPair(tuningNumber, s, k);
+        audioProcessor.applySclKbmPair(tuningNumber, s, k);
     }
     catch (const Tunings::TuningError &e)
     {
         //std::cout << "Error Applying Tuning" << e.what() << std::endl;
         AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Error Applying Tuning", e.what());
     }
-    setTuning(audioProcessor->getTuning(tuningNumber)); // was getCopyOfTuning
+    setTuning(audioProcessor.getTuning(tuningNumber)); // was getCopyOfTuning
     repaint();
 
 }
@@ -3086,19 +3086,19 @@ void TuningEditor::recalculateScaleText()
     try
     {
         auto str = oss.str();
-        audioProcessor->retuneToScale(tuningNumber, Tunings::parseSCLData(str));
+        audioProcessor.retuneToScale(tuningNumber, Tunings::parseSCLData(str));
     }
     catch (const Tunings::TuningError &e)
     {
         
     }
-    setTuning(audioProcessor->getTuning(tuningNumber)); // was getCopyOfTuning
+    setTuning(audioProcessor.getTuning(tuningNumber)); // was getCopyOfTuning
 }
 
 void TuningEditor::setupForTuning(const uint32_t tuningIndex)
 {
     tuningNumber = tuningIndex;
-    setTuning(audioProcessor->getTuning(tuningNumber)); // was getCopyOfTuning
+    setTuning(audioProcessor.getTuning(tuningNumber)); // was getCopyOfTuning
 }
 
 void TuningEditor::setTuning(const Tunings::Tuning &t)
@@ -3127,7 +3127,7 @@ void TuningEditor::setPolarMode(const int m)
 {
     if (m >=0 && m <=1)
     {
-        audioProcessor->setIntState(kStateEditorPolarMode, m);
+        audioProcessor.setIntState(kStateEditorPolarMode, m);
     }
 }
 
@@ -3151,21 +3151,22 @@ void TuningEditor::filesDropped (const juce::StringArray &files, int x, int y)
     if (files.size() !=1)
         return;
         
-	for (auto i = files.begin(); i != files.end(); ++i)
-	{
-		if (i->endsWith(".scl") || i->endsWith(".kbm"))
-		{
-			audioProcessor->applyDroppedFile(tuningNumber, i->toStdString());
-		}
-	}
+    for (auto i = files.begin(); i != files.end(); ++i)
+    {
+        if (i->endsWith(".scl") || i->endsWith(".kbm"))
+        {
+            if (audioProcessor.applyDroppedFile(tuningNumber, i->toStdString()))
+                setupForTuning(tuningNumber);
+        }
+    }
 }
 
 void TuningEditor::timerCallback()
 {
-    if (audioProcessor->keysOnFlag)
+    if (audioProcessor.keysOnFlag)
     {
-        setMidiOnKeys(audioProcessor->getCurrentKeysOn());
-        audioProcessor->keysOnFlag = false;
+        setMidiOnKeys(audioProcessor.getCurrentKeysOn());
+        audioProcessor.keysOnFlag = false;
     }
 }
 

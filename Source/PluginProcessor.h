@@ -9,9 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <bitset>
 #include "Tunings.h"
 #include "libMTSMaster.h"
-#include "TuningEditor.h"
 
 enum States {
     kStateFileSCL1 = 0,
@@ -127,13 +127,17 @@ public:
     Tunings::Tuning& getTestTuning();
     const char* getStateKey(const uint32_t index) noexcept;
     void setNameStateForTuning(const uint32_t tuningNumber, const juce::String & nameString, const uint32_t tunType);
+    bool editedTuningValid(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType);
     bool applyNewTuning(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType, const bool setFileState = true);
     bool applySclKbmPair(const uint32_t tuningNumber, const Tunings::Scale &s, const Tunings::KeyboardMapping &k);
     bool retuneToScale(const uint32_t tuningNumber, const Tunings::Scale &s);
-    void applyDroppedFile(const uint32_t tuningNumber, const std::string & filePath);
+    bool applyDroppedFile(const uint32_t tuningNumber, const std::string & filePath);
+    void resetTuningStringStatesToStandard(const uint32_t tuningNumber);
+    const uint32_t getComplementaryKbmOrSclState(const uint32_t index)  noexcept;
+    const uint32_t getFileIndexFromTuningAndFileType(const uint32_t tuningNumber, const uint32_t tunType) noexcept;
+    const uint32_t getNameIndexFromTuningAndFileType(const uint32_t tuningNumber, const uint32_t tunType) noexcept;
     void exportCurrentSclTuning(const juce::String & filePath);
     void exportCurrentKbmTuning(const juce::String & filePath);
-    void openTuningEditor(const uint32_t tuningNumber, const float desktopScaleFactor);
     void setNoteOn(int noteNumber);
     void setNoteOff(int noteNumber);
     std::bitset<128>& getCurrentKeysOn();
@@ -145,16 +149,9 @@ public:
     std::string standardSCLTuning;
     std::string standardKBMMapping;
     
-    juce::Component::SafePointer<ExternalTuningEditorWindow> editorWindow;
-    
 protected:
-	bool editedTuningValid(const uint32_t tuningNumber, const juce::String & tunData, const uint32_t tunType);
-	bool validSclKbmPair(const Tunings::Scale &s, const Tunings::KeyboardMapping &k);
-	void resetTuningStringStatesToStandard(const uint32_t tuningNumber);
-	const uint32_t getComplementaryKbmOrSclState(const uint32_t index)  noexcept;
-    const uint32_t getFileIndexFromTuningAndFileType(const uint32_t tuningNumber, const uint32_t tunType) noexcept;
-    const uint32_t getNameIndexFromTuningAndFileType(const uint32_t tuningNumber, const uint32_t tunType) noexcept;
-	
+    bool validSclKbmPair(const Tunings::Scale &s, const Tunings::KeyboardMapping &k);
+    
 private:
     //==============================================================================
     juce::AudioProcessorValueTreeState apvts;
@@ -180,8 +177,6 @@ private:
     double targetFrequenciesInHz[128];
     
     bool previousSmooth;
-    
-    juce::Component::SafePointer<TuningEditor> tuningEditor;
     
     std::bitset<128> currentKeysOn;
         

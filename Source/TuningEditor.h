@@ -14,7 +14,7 @@
 #include "fmt/format.h"
 
 #ifndef M_PI
-	#define M_PI 3.14159265358979323846
+    #define M_PI 3.14159265358979323846
 #endif
 
 // For trying out different UI scales
@@ -109,8 +109,8 @@ struct TuningControlArea;
 class ScaleSpaceAudioProcessor;
 
 struct TuningEditor : public juce::Component
-					, public juce::FileDragAndDropTarget
-					, public juce::Timer
+                    , public juce::FileDragAndDropTarget
+                    , public juce::Timer
 {
     class TuningTextEditedListener
     {
@@ -120,7 +120,7 @@ struct TuningEditor : public juce::Component
     };
   
   
-    TuningEditor(ScaleSpaceAudioProcessor *p, const uint32_t tuningIndex);
+    TuningEditor(ScaleSpaceAudioProcessor& p, const uint32_t tuningIndex);
     ~TuningEditor();
     
     void onToneChanged(int tone, double newCentsValue);
@@ -154,7 +154,7 @@ struct TuningEditor : public juce::Component
     Tunings::KeyboardMapping currentMapping;
     Tunings::Scale currentScale;
     
-    ScaleSpaceAudioProcessor *audioProcessor{nullptr};
+    ScaleSpaceAudioProcessor& audioProcessor;
     
     uint32_t tuningNumber;
         
