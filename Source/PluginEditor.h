@@ -87,5 +87,7 @@ private:
     
     juce::SharedResourcePointer<TooltipWindow> tooltipWindow;
     
+    bool initialUIUpdate;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ScaleSpaceAudioProcessorEditor)
 };

@@ -2798,6 +2798,7 @@ struct TuningControlArea : public juce::Component,
 TuningEditor::TuningEditor(ScaleSpaceAudioProcessor& p, const uint32_t tuningIndex)
                 :audioProcessor(p)
 {
+    desktopScaleFactor = 1.0f;
     tuningNumber = tuningIndex;
     tuning = audioProcessor.getTuning(tuningNumber); // was getCopyOfTuning
     currentScale = tuning.scale;
@@ -2854,7 +2855,13 @@ TuningEditor::~TuningEditor()
 
 void TuningEditor::resized()
 {
-    auto t = getTransform().inverted();
+    tuningKeyboardTable->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+    controlArea->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+    sclKbmDisplay->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+    radialScaleGraph->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+    intervalMatrix->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+    
+    auto t = juce::AffineTransform::scale(desktopScaleFactor).inverted();
     auto h = getHeight();
     auto w = getWidth();
 
@@ -3168,6 +3175,11 @@ void TuningEditor::timerCallback()
         setMidiOnKeys(audioProcessor.getCurrentKeysOn());
         audioProcessor.keysOnFlag = false;
     }
+}
+
+void TuningEditor::setDesktopScaleFactor(const float scaleFactor)
+{
+    desktopScaleFactor = scaleFactor;
 }
 
 ExternalTuningEditorWindow::ExternalTuningEditorWindow(const juce::String& name, juce::Colour backgroundColour, int requiredButtons)

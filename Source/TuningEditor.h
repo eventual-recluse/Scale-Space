@@ -140,6 +140,7 @@ struct TuningEditor : public juce::Component
     bool isInterestedInFileDrag (const juce::StringArray &files) override;
     void filesDropped (const juce::StringArray &files, int x, int y) override;
     void timerCallback() override;
+    void setDesktopScaleFactor(const float scaleFactor);
     
     std::unique_ptr<TuningTableListBoxModel> tuningKeyboardTableModel;
     std::unique_ptr<juce::TableListBox> tuningKeyboardTable;
@@ -157,6 +158,8 @@ struct TuningEditor : public juce::Component
     ScaleSpaceAudioProcessor& audioProcessor;
     
     uint32_t tuningNumber;
+    
+    float desktopScaleFactor;
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TuningEditor)
     

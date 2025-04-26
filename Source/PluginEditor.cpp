@@ -150,6 +150,9 @@ ScaleSpaceAudioProcessorEditor::ScaleSpaceAudioProcessorEditor (ScaleSpaceAudioP
     multiPad.threeDimensionModeActive(*audioProcessor.getApvts().getRawParameterValue("threeDimensional"));
     
     tuningEditor = std::make_unique<TuningEditor>(audioProcessor, TUNING_1);
+    
+    initialUIUpdate = true;
+    startTimerHz(10);
 }
 
 ScaleSpaceAudioProcessorEditor::~ScaleSpaceAudioProcessorEditor()
@@ -500,7 +503,7 @@ void ScaleSpaceAudioProcessorEditor::openTuningEditor(const uint32_t tuningNumbe
     {
         audioProcessor.currentEditedTuning = tuningNumber;
         tuningEditor->setupForTuning(tuningNumber);
-        tuningEditor->setTransform(juce::AffineTransform::scale(desktopScaleFactor));
+        tuningEditor->setDesktopScaleFactor(desktopScaleFactor);
         tuningEditor->startTimerHz(50);
         editorWindow = new ExternalTuningEditorWindow("Edit Tuning for Scale " + juce::String(tuningNumber + 1), Colours::grey, DocumentWindow::closeButton);
         editorWindow->setUsingNativeTitleBar(false);
@@ -514,7 +517,14 @@ void ScaleSpaceAudioProcessorEditor::openTuningEditor(const uint32_t tuningNumbe
 // TODO Don't use this timer to update the UI while the tuning editor is open
 void ScaleSpaceAudioProcessorEditor::timerCallback()
 {
-    if (editorWindow)
+    if (initialUIUpdate)
+    {
+        updateAllNameLabels();
+        repaint();
+        initialUIUpdate = false;
+        stopTimer();
+    }
+    else if (editorWindow)
     {
         if (audioProcessor.paintFlag)
         {
