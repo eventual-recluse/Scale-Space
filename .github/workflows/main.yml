@@ -21,12 +21,16 @@ jobs:
 
       - name: Show Directory
         run: |
-          ls -l ./build/SCALESPACE_artefacts/Release/VST3
+          ls -l ./build/SCALESPACE_artefacts/Release
+
+      - name: Build Cleanup
+        run: |
+          rm ./build/SCALESPACE_artefacts/Release/libScale-Space_SharedCode.a
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./build/SCALESPACE_artefacts/Release/VST3
+          path: ./build/SCALESPACE_artefacts/Release
           name: Scale-Space-v0.0.5-ubuntu-latest-release
 
   windows:
@@ -42,12 +46,18 @@ jobs:
 
       - name: Show Directory
         run: |
-          ls -l ./build/SCALESPACE_artefacts/Release/VST3
+          ls -l ./build/SCALESPACE_artefacts/Release
+
+      - name: Build Cleanup
+        run: |
+          rm ./build/SCALESPACE_artefacts/Release/Scale-Space_SharedCode.lib
+          rm ./build/SCALESPACE_artefacts/Release/VST3/Scale-Space.exp
+          rm ./build/SCALESPACE_artefacts/Release/VST3/Scale-Space.lib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./build/SCALESPACE_artefacts/Release/VST3
+          path: ./build/SCALESPACE_artefacts/Release
           name: Scale-Space-v0.0.5-windows-latest-release
 
   macos:
@@ -63,10 +73,14 @@ jobs:
 
       - name: Show Directory
         run: |
-          ls -l ./build/SCALESPACE_artefacts/Release/VST3
+          ls -l ./build/SCALESPACE_artefacts/Release
+
+      - name: Build Cleanup
+        run: |
+          rm ./build/SCALESPACE_artefacts/Release/libScale-Space_SharedCode.a
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./build/SCALESPACE_artefacts/Release/VST3
+          path: ./build/SCALESPACE_artefacts/Release
           name: Scale-Space-v0.0.5-macos-latest-release
